@@ -67,6 +67,7 @@ export async function run(): Promise<StartServerResult> {
     pushManifestPath: cliOptions['manifest'],
     proxy: proxyArgs.path && proxyArgs.target && proxyArgs,
     allowOrigin: cliOptions['allow-origin'],
+    noEntrypointRedirect: cliOptions['no-entrypoint-redirect']
   };
 
   if (cliOptions.help) {

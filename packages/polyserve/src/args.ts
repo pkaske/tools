@@ -162,4 +162,9 @@ export const args: ArgDescriptor[] = [
     description: 'Set the Access-Control-Allow-Origin header.',
     type: String,
   },
+  {
+    name: 'no-entrypoint-redirect',
+    description: 'Don\'t serve entrypoint file if route is a 404.',
+    type: Boolean
+  }
 ];

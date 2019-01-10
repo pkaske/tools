@@ -110,6 +110,9 @@ export interface ServerOptions {
    * app, to be handled before all others
    */
   additionalRoutes?: Map<string, express.RequestHandler>;
+
+  /** Don't serve entrypoint file if route wasn't found. */
+  noEntrypointRedirect?: boolean;
 }
 
 export type ExpressAppMapper = (app: express.Express, options: ServerOptions) =>
@@ -431,18 +434,24 @@ export function getApp(options: ServerOptions): express.Express {
         filePath,
         {root: root, index: entrypoint, etag: false, lastModified: false})
         .on('error',
-            (error: send.SendError) => {
-              if (error.status === 404 && !filePathRegex.test(filePath)) {
-                // The static file handling middleware failed to find a file on
-                // disk. Serve the entry point HTML file instead of a 404.
-                send(req, entrypoint, {root: root}).pipe(res);
-              } else {
-                res.status(error.status || 500);
-                res.type('html');
-                res.end(escapeHtml(error.message));
-              }
-            })
-        .pipe(res);
+        (error: send.SendError) => {
+          if (error.status === 404 && !filePathRegex.test(filePath)) {
+            if (options.noEntrypointRedirect) {
+              res.status(error.status);
+              res.type('html');
+              res.end(escapeHtml(error.message));
+            } else {
+              // The static file handling middleware failed to find a file on
+              // disk. Serve the entry point HTML file instead of a 404.
+              send(req, entrypoint, { root: root }).pipe(res);
+            }
+          } else {
+            res.status(error.status || 500);
+            res.type('html');
+            res.end(escapeHtml(error.message));
+          }
+        })
+      .pipe(res);
   });
   return app;
 }
